@@ -5,21 +5,46 @@ using namespace std;
 
 long long toDecimal(string num, int base);
 
-vector<int> toBin(string decNum, int base);
+string toBin(string decNum, int base, vector<char>& output);
 
 int main() {
     string num;
+    vector<char> result;
     int base;
+    int baseOut;
     cout << "Enter a number: " << endl;
     cin >> num;
     cout << "What is the base of this number? " << endl;
     cin >> base;
-    vector<int> vec;
-    vec = toBin(num, base);
-    cout << "Result:" << endl;
-    for (const int num1: vec) {
-        cout << num1;
+    cout << "Convert to which base? (2-36): " << endl;
+    cin >> baseOut;
+
+    switch (baseOut) {
+        case 2: {
+            string msg = toBin(num, base, result);
+            if (msg == "SUCCESS") {
+                cout << "Result: " << endl;
+                for (int i = 0; i < result.size(); ++i) {
+                    cout << result[i];
+                }
+                cout << endl;
+            } else if (msg == "BINARY"){
+                cout << "Can't convert binary to binary." << endl;
+            }
+            break;
+        }
+
+        default: {
+            cout << "Base not supported yet." << endl;
+            break;
+        }
     }
+
+    // result = toBin(num, base);
+    // cout << "Result:" << endl;
+    // for (const int num1: result) {
+    //     cout << num1;
+    // }
 }
 
 long long toDecimal(string num, int base) {
@@ -41,24 +66,22 @@ long long toDecimal(string num, int base) {
     return decResult;
 }
 
-vector<int> toBin(string num, int base) {
+string toBin(string num, int base, vector<char>& output) {
     int leftover;
-    vector<int> result;
     switch (base) {
         case 2: {
-            result.push_back(0);
-            return result;
+            return "BINARY";
             break;
         }
 
         case 10: {
-            int numb = stoi(num);
+            long long numb = stoi(num);
             do {
                 leftover = numb % 2;
                 numb /= 2;
-                result.insert(result.begin(), leftover);
+                output.insert(output.begin(), leftover);
             } while (numb > 0);
-            return result;
+            return "SUCCESS";
             break;
         }
 
@@ -66,12 +89,14 @@ vector<int> toBin(string num, int base) {
             long long decResult;
             decResult = 0;
             decResult = toDecimal(num, base);
+            cout << "decResult: " << decResult << endl;
             do {
                 leftover = decResult % 2;
                 decResult /= 2;
-                result.insert(result.begin(), leftover);
+                output.insert(output.begin(), leftover + '0');
+                // cout << leftover << endl;
             } while (decResult > 0);
-            return result;
+            return "SUCCESS";
             break;
         }
     }
