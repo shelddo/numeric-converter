@@ -10,6 +10,7 @@ string toBin(string decNum, int base, vector<char>& output);
 // to hex converter and to any base
 // handle too big numbers
 // handle out of base numbers
+
 int main() {
     string num;
     vector<char> result;
@@ -48,6 +49,7 @@ int main() {
             else if (msg == "TOO BIG") {
                 cout << "Number is too big." << endl;
             }
+            break;
         }
 
         default: {
@@ -82,6 +84,10 @@ string toDecimal(string num, int base, vector<char>& output) {
             return "TOO BIG";
         }
     }
+    string outNumb = to_string(decResult);
+    for (char n : outNumb) {
+        output.push_back(n);
+    }
     return "SUCCESS";
 }
 
@@ -94,7 +100,7 @@ string toBin(string num, int base, vector<char>& output) {
         }
 
         case 10: {
-            long long numb = stoi(num);
+            long long numb = stol(num);
             do {
                 leftover = numb % 2;
                 numb /= 2;
@@ -106,8 +112,10 @@ string toBin(string num, int base, vector<char>& output) {
 
         default: {
             long long decResult;
-            decResult = 0;
-            decResult = toDecimal(num, base);
+            vector<char> outputDec;
+            toDecimal(num, base, outputDec);
+            string decNumb(outputDec.begin(), outputDec.end());
+            decResult = stol(decNumb);
             cout << "decResult: " << decResult << endl;
             do {
                 leftover = decResult % 2;
