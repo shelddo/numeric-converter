@@ -3,10 +3,13 @@
 #include <vector>
 using namespace std;
 
-long long toDecimal(string num, int base);
+string toDecimal(string num, int base, vector<char>& output);
 
 string toBin(string decNum, int base, vector<char>& output);
-
+//TODO:
+// to hex converter and to any base
+// handle too big numbers
+// handle out of base numbers
 int main() {
     string num;
     vector<char> result;
@@ -34,6 +37,19 @@ int main() {
             break;
         }
 
+        case 10: {
+            string msg = toDecimal(num, base, result);
+            if (msg == "SUCCESS") {
+                cout << "Result: " << endl;
+                for (int i = 0; i < result.size(); ++i) {
+                    cout << result[i];
+                }
+            }
+            else if (msg == "TOO BIG") {
+                cout << "Number is too big." << endl;
+            }
+        }
+
         default: {
             cout << "Base not supported yet." << endl;
             break;
@@ -47,7 +63,7 @@ int main() {
     // }
 }
 
-long long toDecimal(string num, int base) {
+string toDecimal(string num, int base, vector<char>& output) {
     long long decResult = 0;
     long long pow = 1;
     for (int i = num.length() - 1; i >= 0; i--) {
@@ -62,8 +78,11 @@ long long toDecimal(string num, int base) {
         // cout << "num: " << numb << " pow: " << pow << " base: " << base << " value: " << numb * pow << endl;
         cout << " pow: " << pow << " base: " << base << " value: " << numb * pow << endl;
         pow *= base;
+        if (decResult >= 9223372036854775807 || decResult <= -9223372036854775808) {
+            return "TOO BIG";
+        }
     }
-    return decResult;
+    return "SUCCESS";
 }
 
 string toBin(string num, int base, vector<char>& output) {
