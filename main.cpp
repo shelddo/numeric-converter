@@ -4,15 +4,15 @@
 #include <vector>
 using namespace std;
 
-string toDecimal(string num, int base, vector<char> &output);
+string toDecimal(const string &num, int base, vector<char> &output);
 
-string toBin(string decNum, int base, vector<char> &output);
+string toBin(const string &num, int base, vector<char> &output);
 
-string toHex(string num, int base, vector<char> &output);
+string toHex(const string &num, int base, vector<char> &output);
 
-string toAnyNumber(string num, int base, int desiredBase, vector<char> &output);
+string toAnyNumber(const string &num, int base, int outBase, vector<char> &output);
 
-bool checkBase(string num, int base);
+static bool checkBase(const string &num, int base);
 
 int main() {
     string num;
@@ -53,8 +53,8 @@ int main() {
                 string msg = toBin(num, base, result);
                 if (msg == "SUCCESS") {
                     cout << "Result: " << endl;
-                    for (int i = 0; i < result.size(); ++i) {
-                        cout << result[i] + '0' - 48;
+                    for (const char i: result) {
+                        cout << i;
                     }
                     cout << endl;
                 } else if (msg == "BINARY") {
@@ -67,8 +67,8 @@ int main() {
                 string msg = toDecimal(num, base, result);
                 if (msg == "SUCCESS") {
                     cout << "Result: " << endl;
-                    for (int i = 0; i < result.size(); i++) {
-                        cout << result[i];
+                    for (const char i: result) {
+                        cout << i;
                     }
                 } else if (msg == "TOO BIG") {
                     cout << "Number is too big." << endl;
@@ -80,8 +80,8 @@ int main() {
                 string msg = toHex(num, base, result);
                 if (msg == "SUCCESS") {
                     cout << "Result: " << endl;
-                    for (int i = 0; i < result.size(); i++) {
-                        cout << result[i];
+                    for (const char i: result) {
+                        cout << i;
                     }
                     cout << endl;
                 } else if (msg == "HEXADECIMAL") {
@@ -94,8 +94,8 @@ int main() {
                 string msg = toAnyNumber(num, base, baseOut, result);
                 if (msg == "SUCCESS") {
                     cout << "Result: " << endl;
-                    for (int i = 0; i < result.size(); i++) {
-                        cout << result[i];
+                    for (const char i: result) {
+                        cout << i;
                     }
                     cout << endl;
                 }
@@ -113,17 +113,15 @@ int main() {
     cout << "Thanks for using our converter!" << endl;
 }
 
-bool checkBase(string num, int base) {
+bool checkBase(const string &num, const int base) {
     bool valid = true;
-    for (char c: num) {
+    for (const char c: num) {
         if (isdigit(c)) {
-            int numLetter = c - '0';
-            if (numLetter > base) {
+            if (const int numLetter = c - '0'; numLetter > base) {
                 valid = false;
             }
         } else {
-            int numLetter = (c - 'A') + 10;
-            if (numLetter > base) {
+            if (const int numLetter = (c - 'A') + 10; numLetter > base) {
                 valid = false;
             }
         }
@@ -131,33 +129,40 @@ bool checkBase(string num, int base) {
     return valid;
 }
 
-string toDecimal(string num, int base, vector<char> &output) {
+string toDecimal(const string &num, const int base, vector<char> &output) {
     long long decResult = 0;
     long long pow = 1;
-    for (int i = num.length() - 1; i >= 0; i--) {
+    for (size_t i = num.length(); i-- > 0; ) {
         long long numb;
         if (isdigit(num[i])) {
             numb = num[i] - '0';
         } else {
             numb = (num[i] - 'A') + 10;
         }
-        cout << "numb: " << numb << " char: " << num[i];
+        //cout << "numb: " << numb << " char: " << num[i];
         decResult += numb * pow;
         // cout << "num: " << numb << " pow: " << pow << " base: " << base << " value: " << numb * pow << endl;
-        cout << " pow: " << pow << " base: " << base << " value: " << numb * pow << endl;
+        //cout << " pow: " << pow << " base: " << base << " value: " << numb * pow << endl;
         pow *= base;
-        if (pow >= 9223372036854775807LL || pow <= -9223372036854775808LL) {
+        if (pow < 0) {
             return "TOO BIG";
         }
     }
     string outNumb = to_string(decResult);
+    cout << "decNumb: " << outNumb << endl;
     for (char n: outNumb) {
         output.push_back(n);
     }
     return "SUCCESS";
 }
 
-string toBin(string num, int base, vector<char> &output) {
+
+/// \brief Converts a number from any base to binary.
+/// \param num The number to be converted.
+/// \param base The base which the number to be converted is.
+/// \param output The output list where the final result will be inserted to.
+/// \return A string message to identify if the process went well or something went wrong.
+string toBin(const string &num, const int base, vector<char> &output) {
     long long leftover;
     switch (base) {
         case 2: {
@@ -172,7 +177,7 @@ string toBin(string num, int base, vector<char> &output) {
             do {
                 leftover = numb % 2;
                 numb /= 2;
-                output.insert(output.begin(), leftover);
+                output.insert(output.begin(), static_cast<char>('0' + leftover));
                 //cout << leftover << endl;
             } while (numb > 0);
             return "SUCCESS";
@@ -180,16 +185,17 @@ string toBin(string num, int base, vector<char> &output) {
         }
 
         default: {
-            long long decResult;
+            // TODO:
+            // - DEAL WITH NUMBERS BIGGER THAN LONG LONG LIMITS
             vector<char> outputDec;
             toDecimal(num, base, outputDec);
             string decNumb(outputDec.begin(), outputDec.end());
-            decResult = stoll(decNumb);
+            long long decResult = stoll(decNumb);
             //cout << "decResult: " << decResult << endl;
             do {
                 leftover = decResult % 2;
                 decResult /= 2;
-                output.insert(output.begin(), leftover + '0');
+                output.insert(output.begin(), static_cast<char>('0' + leftover));
                 // cout << leftover << endl;
             } while (decResult > 0);
             return "SUCCESS";
@@ -198,7 +204,7 @@ string toBin(string num, int base, vector<char> &output) {
     }
 }
 
-string toHex(string num, int base, vector<char> &output) {
+string toHex(const string &num, const int base, vector<char> &output) {
     switch (base) {
         case 16: {
             return "HEXADECIMAL";
@@ -206,41 +212,39 @@ string toHex(string num, int base, vector<char> &output) {
         }
 
         case 10: {
-            long long decResult;
-            int leftover;
-            decResult = stoll(num);
+            long long leftover;
+            long long decResult = stoll(num);
             do {
                 leftover = decResult % 16;
                 decResult /= 16;
                 //cout << "number: " << leftover << endl;
                 if (leftover >= 10) {
-                    char chr = (leftover + 55);
+                    char chr = static_cast<char>(leftover + 55);
                     cout << "letra: " << chr << endl;
                     output.insert(output.begin(), chr);
                 } else {
-                    output.insert(output.begin(), leftover + '0');
+                    output.insert(output.begin(),  static_cast<char>(leftover + '0'));
                 }
             } while (decResult > 0);
             return "SUCCESS";
         }
 
         default: {
-            long long decResult;
-            int leftover;
+            long long leftover;
             vector<char> outputDec;
             toDecimal(num, base, outputDec);
-            string decNumb(outputDec.begin(), outputDec.end());
-            decResult = stoll(decNumb);
+            const string decNumb(outputDec.begin(), outputDec.end());
+            long long decResult = stoll(decNumb);
             do {
                 leftover = decResult % 16;
                 decResult /= 16;
                 //cout << "number: " << leftover << endl;
                 if (leftover >= 10) {
-                    char chr = (leftover + 55);
+                    char chr = static_cast<char>(leftover + 55);
                     //cout << "letter: " << chr << endl;
                     output.insert(output.begin(), chr);
                 } else {
-                    output.insert(output.begin(), leftover + '0');
+                    output.insert(output.begin(),  static_cast<char>(leftover + '0'));
                 }
             } while (decResult > 0);
             return "SUCCESS";
@@ -248,23 +252,22 @@ string toHex(string num, int base, vector<char> &output) {
     }
 }
 
-string toAnyNumber(string num, int base, int desiredBase, vector<char> &output) {
-    long long decResult;
-    int leftover;
+string toAnyNumber(const string &num, const int base, const int outBase, vector<char> &output) {
+    long long leftover;
     vector<char> outputDec;
     toDecimal(num, base, outputDec);
-    string decNumb(outputDec.begin(), outputDec.end());
-    decResult = stoll(decNumb);
+    const string decNumb(outputDec.begin(), outputDec.end());
+    long long decResult = stoll(decNumb);
     do {
-        leftover = decResult % desiredBase;
-        decResult /= desiredBase;
+        leftover = decResult % outBase;
+        decResult /= outBase;
         //cout << "number: " << leftover << endl;
         if (leftover >= 10) {
-            char chr = (leftover + 55);
+            char chr = static_cast<char>(leftover + 55);
             //cout << "letter: " << chr << endl;
             output.insert(output.begin(), chr);
         } else {
-            output.insert(output.begin(), leftover + '0');
+            output.insert(output.begin(), static_cast<char>(leftover + '0'));
         }
     } while (decResult > 0);
     return "SUCCESS";
