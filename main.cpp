@@ -13,6 +13,8 @@ string toHex(const string &num, int base, vector<char> &output);
 string toAnyNumber(const string &num, int base, int outBase, vector<char> &output);
 
 static bool checkBase(const string &num, int base);
+//TODO
+// handle unexpected digits (special characters)
 
 int main() {
     string num;
@@ -33,6 +35,10 @@ int main() {
         cout << "What is the base of this number? " << endl;
         cin >> base;
 
+        for (char &c: num) {
+            c = std::toupper(static_cast<unsigned char>(c));
+        }
+
         bool numValid = checkBase(num, base);
         if (numValid == false) {
             cout << "This number is not in base " << base << ". Please try again." << endl;
@@ -48,6 +54,14 @@ int main() {
             cout << endl;
             continue;
         }
+
+        // check if the input number is already on the ouput desired base
+        if (baseOut == base) {
+            cout << "Can't convert a base " << base
+            << " number to the same base. Please inform another output base to convert." << endl;
+            continue;
+        }
+
         switch (baseOut) {
             case 2: {
                 string msg = toBin(num, base, result);
@@ -57,8 +71,8 @@ int main() {
                         cout << i;
                     }
                     cout << endl;
-                } else if (msg == "BINARY") {
-                    cout << "Can't convert binary to binary." << endl;
+                } else if (msg == "LARGE NUMBER") {
+                    cout << "This number is too large, not supported." << endl;
                 }
                 break;
             }
@@ -71,7 +85,7 @@ int main() {
                         cout << i;
                     }
                 } else if (msg == "TOO BIG") {
-                    cout << "Number is too big." << endl;
+                    cout << "This number is too large, not supported." << endl;
                 }
                 break;
             }
@@ -84,8 +98,6 @@ int main() {
                         cout << i;
                     }
                     cout << endl;
-                } else if (msg == "HEXADECIMAL") {
-                    cout << "Cant convert a hex number to another hex number." << endl;
                 }
                 break;
             }
@@ -98,6 +110,8 @@ int main() {
                         cout << i;
                     }
                     cout << endl;
+                } else if (msg == "LARGE NUMBER") {
+                    cout << "This number is too large, not supported." << endl;
                 }
                 break;
             }
@@ -108,6 +122,7 @@ int main() {
         cout << "1 - Yes" << endl;
         cout << "2 - No" << endl;
         cin >> option;
+        result.clear();
     }
 
     cout << "Thanks for using our converter!" << endl;
@@ -117,11 +132,11 @@ bool checkBase(const string &num, const int base) {
     bool valid = true;
     for (const char c: num) {
         if (isdigit(c)) {
-            if (const int numLetter = c - '0'; numLetter > base) {
+            if (const int numLetter = c - '0'; numLetter >= base) {
                 valid = false;
             }
         } else {
-            if (const int numLetter = (c - 'A') + 10; numLetter > base) {
+            if (const int numLetter = (c - 'A') + 10; numLetter >= base) {
                 valid = false;
             }
         }
@@ -139,17 +154,18 @@ string toDecimal(const string &num, const int base, vector<char> &output) {
         } else {
             numb = (num[i] - 'A') + 10;
         }
-        //cout << "numb: " << numb << " char: " << num[i];
-        decResult += numb * pow;
-        // cout << "num: " << numb << " pow: " << pow << " base: " << base << " value: " << numb * pow << endl;
-        //cout << " pow: " << pow << " base: " << base << " value: " << numb * pow << endl;
-        pow *= base;
-        if (pow < 0) {
-            return "TOO BIG";
+        const long long value = numb * pow;
+        if (numb != 0) {
+            if (pow > LLONG_MAX / numb || decResult > LLONG_MAX - value) {
+                return "LARGE NUMBER";
+            }
         }
+        decResult += value;
+        //cout << "num: " << numb << " char: " << num[i] << " pow: " << pow << " base: " << base << " value: " << value << endl;
+        pow *= base;
     }
     string outNumb = to_string(decResult);
-    cout << "decNumb: " << outNumb << endl;
+    cout << "decNumb: " << outNumb << "/" << LLONG_MAX << endl;
     for (char n: outNumb) {
         output.push_back(n);
     }
@@ -185,10 +201,11 @@ string toBin(const string &num, const int base, vector<char> &output) {
         }
 
         default: {
-            // TODO:
-            // - DEAL WITH NUMBERS BIGGER THAN LONG LONG LIMITS
             vector<char> outputDec;
-            toDecimal(num, base, outputDec);
+            string decMsg = toDecimal(num, base, outputDec);
+            if (decMsg == "LARGE NUMBER") {
+                return "LARGE NUMBER";
+            }
             string decNumb(outputDec.begin(), outputDec.end());
             long long decResult = stoll(decNumb);
             //cout << "decResult: " << decResult << endl;
@@ -232,7 +249,10 @@ string toHex(const string &num, const int base, vector<char> &output) {
         default: {
             long long leftover;
             vector<char> outputDec;
-            toDecimal(num, base, outputDec);
+            string decMsg = toDecimal(num, base, outputDec);
+            if (decMsg == "LARGE NUMBER") {
+                return "LARGE NUMBER";
+            }
             const string decNumb(outputDec.begin(), outputDec.end());
             long long decResult = stoll(decNumb);
             do {
@@ -255,7 +275,10 @@ string toHex(const string &num, const int base, vector<char> &output) {
 string toAnyNumber(const string &num, const int base, const int outBase, vector<char> &output) {
     long long leftover;
     vector<char> outputDec;
-    toDecimal(num, base, outputDec);
+    string decMsg = toDecimal(num, base, outputDec);
+    if (decMsg == "LARGE NUMBER") {
+        return "LARGE NUMBER";
+    }
     const string decNumb(outputDec.begin(), outputDec.end());
     long long decResult = stoll(decNumb);
     do {
