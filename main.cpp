@@ -15,6 +15,7 @@ string toAnyNumber(const string &num, int base, int outBase, vector<char> &outpu
 static bool checkBase(const string &num, int base);
 //TODO
 // handle unexpected digits (special characters)
+// handle other numbers on final prompt to continue or exit
 
 int main() {
     string num;
@@ -36,7 +37,7 @@ int main() {
         cin >> base;
 
         for (char &c: num) {
-            c = std::toupper(static_cast<unsigned char>(c));
+            c = static_cast<char>(std::toupper(c));
         }
 
         bool numValid = checkBase(num, base);
@@ -84,7 +85,7 @@ int main() {
                     for (const char i: result) {
                         cout << i;
                     }
-                } else if (msg == "TOO BIG") {
+                } else if (msg == "LARGE NUMBER") {
                     cout << "This number is too large, not supported." << endl;
                 }
                 break;
@@ -98,6 +99,8 @@ int main() {
                         cout << i;
                     }
                     cout << endl;
+                } else if (msg == "LARGE NUMBER") {
+                    cout << "This number is too large, not supported." << endl;
                 }
                 break;
             }
@@ -161,7 +164,7 @@ string toDecimal(const string &num, const int base, vector<char> &output) {
             }
         }
         decResult += value;
-        //cout << "num: " << numb << " char: " << num[i] << " pow: " << pow << " base: " << base << " value: " << value << endl;
+        cout << "num: " << numb << " char: " << num[i] << " pow: " << pow << " base: " << base << " value: " << value << endl;
         pow *= base;
     }
     string outNumb = to_string(decResult);
