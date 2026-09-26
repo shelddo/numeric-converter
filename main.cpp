@@ -120,11 +120,19 @@ int main() {
             }
         }
 
-        cout << endl;
-        cout << "Do you want to convert another number?" << endl;
-        cout << "1 - Yes" << endl;
-        cout << "2 - No" << endl;
-        cin >> option;
+        bool valid = false;
+        do {
+            cout << endl;
+            cout << "Do you want to convert another number?" << endl;
+            cout << "1 - Yes" << endl;
+            cout << "2 - No" << endl;
+            cin >> option;
+            if (option != 1 && option != 2) {
+                cout << "Invalid option. Please try again." << endl;
+                continue;
+            }
+            valid = true;
+        } while (valid == false);
         result.clear();
     }
 
