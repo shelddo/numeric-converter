@@ -4,15 +4,13 @@
 #include <vector>
 using namespace std;
 
+// declaração dos métodos/funções
 string toDecimal(const string &num, int base, vector<char> &output);
-
 string toBin(const string &num, int base, vector<char> &output);
-
 string toHex(const string &num, int base, vector<char> &output);
-
 string toAnyNumber(const string &num, int inBase, int outBase, vector<char> &output);
-
 static bool checkBase(const string &num, int base);
+
 //TODO
 // handle unexpected digits (special characters)
 
@@ -39,6 +37,7 @@ int main() {
             c = static_cast<char>(std::toupper(c));
         }
 
+        // verifica se o número pertence à base informada
         bool numValid = checkBase(num, base);
         if (numValid == false) {
             cout << "Esse numero nao pertence a base " << base << ". Tente novamente." << endl;
@@ -60,7 +59,7 @@ int main() {
         // checa se o número de origem é da mesma base de destino
         if (baseOut == base) {
             cout << "Não é possível converter um numero de base " << base
-            << " para a mesma base. Digite outra base a de destino." << endl;
+                    << " para a mesma base. Digite outra base a de destino." << endl;
             continue;
         }
 
@@ -97,6 +96,10 @@ int main() {
 
 bool checkBase(const string &num, const int base) {
     bool valid = true;
+
+    // loopa para cada dígito no número
+    // como recebe uma string, loopa entre os caracteres dela e os transforma o dígito em número e confere se é
+    // maior ou igual à base informada, caso seja, invalida a base
     for (const char c: num) {
         if (isdigit(c)) {
             if (const int numLetter = c - '0'; numLetter >= base) {
@@ -118,30 +121,71 @@ bool checkBase(const string &num, const int base) {
 /// \returns Uma mensagem informando se a operação foi um sucesso ou ocorreu algum erro.
 string toDecimal(const string &num, const int base, vector<char> &output) {
     long long decResult = 0;
-    long long pow = 1;
+    long long pow = 1; // inicia como 1 pois todo número elevado a 0 é 1
 
-    // loopa entre os dígitos do número de origem, começando do final
-    for (size_t i = num.length(); i-- > 0; ) {
-        long long numb;
+    // loopa entre os dígitos do número de origem, começando do final.
+    // por se tratar do cálculo padrão, onde é: num * (base ^ posição), é necessário começar do final,
+    // pois facilita o cálculo, visto que a contagem da posição começa no final do número.
+    for (size_t i = num.length(); i-- > 0;) {
+        long long numb; // variável que armazenará o digito atualmente percorrido no número
+
+        // transforma o dígito em número
         if (isdigit(num[i])) {
-            numb = num[i] - '0';
+            numb = num[i] - '0'; // conversão de char para long long
         } else {
-            numb = (num[i] - 'A') + 10;
+            numb = (num[i] - 'A') + 10; // mesma conversão, mas adiciona 10, por se tratar de uma letra
         }
+
+
+        /* Checa se o valor do cálculo não ultrapassará o límite de armazenamento do long long, evitando que ocorra um
+         * overflow.
+         *
+         * Como funciona:
+         * O programa verificará duas condições:
+         * - A primeira verifica se o valor da potência (pow) é maior que o limite de long long dividido pelo
+         * dígito (numb) sendo calculado.
+         * - A segunda verifica se o valor atual da soma dos digitos anteriores (decResult) é maior que o limite de
+         * long long menos o valor calculado do dígito atual (value).
+         *
+         * Por exemplo:
+         * Digamos que o limite seja 100, o dígito atual (numb) seja 5 e a potência seja 21. 100 / 5 é 20, e não pode
+         * ultrapassar esse valor, então, como o valor da potência é 21, ele resultaria em um erro, pois é maior
+         * que o que podemos armazenar naquele momento.
+         *
+         * Outro exemplo:
+         * Ainda presumindo que o limite seja 100, se o valor do cálculo do digito atual (value) for 30, quer dizer
+         * que o máximo que poderia ser somado é 70 (100 - 30 = 70). Portanto, se o valor da soma dos dígitos
+         * anteriores (decResult) for 80, por exemplo, resultaria no mesmo erro, não permitindo que o programa
+         * continuasse.
+         */
+        // primeira condição
+        if (numb != 0 && pow > LLONG_MAX / numb) {
+            return "LARGE NUMBER";
+        }
+
+        // calcula o valor do dígito
         const long long value = numb * pow;
-        if (numb != 0) {
-            if (pow > LLONG_MAX / numb || decResult > LLONG_MAX - value) {
-                return "LARGE NUMBER";
-            }
+
+        // segunda condição
+        if (decResult > LLONG_MAX - value) {
+            return "LARGE NUMBER";
         }
-        decResult += value;
-        //cout << "num: " << numb << " char: " << num[i] << " pow: " << pow << " base: " << base << " value: " << value << endl;
-        pow *= base;
+
+        decResult += value; // adiciona o valor do dígito no resultado final
+
+        // debug para aferição do cálculo dígito por dígito
+        //cout << "num: " << numb << " char: " << num[i] << " pow: " << pow
+        //<< " base: " << base << " value: " << value << endl;
+
+        pow *= base; // prepara o valor da potência para o próximo dígito
     }
-    string outNumb = to_string(decResult);
 
-    //cout << "decNumb: " << outNumb << "/" << LLONG_MAX << endl; // debug para aferição da
+    string outNumb = to_string(decResult); // transforma o resultado long long em string
 
+    // debug para aferição do quanto o resultado se aproximou do limite
+    //cout << "decNumb: " << outNumb << "/" << LLONG_MAX << endl;
+
+    // pega cada char da string convertida e adiciona no vetor de saída (foreach)
     for (char n: outNumb) {
         output.push_back(n);
     }
@@ -163,7 +207,7 @@ string toAnyNumber(const string &num, const int inBase, const int outBase, vecto
 
     // se a conversão para decimal resultar em um número maior que a variável do tipo long long pode armazenar,
     // resulta em um erro que impede a continuação do cálculo, pois o resultado seria incorreto
-    if (decMsg == "LARGE NUMBER") {return "LARGE NUMBER";}
+    if (decMsg == "LARGE NUMBER") { return "LARGE NUMBER"; }
 
     const string decNumb(outputDec.begin(), outputDec.end()); // extrai os dígitos do número em uma string
     long long decResult = stoll(decNumb); // transforma a string em um long long (numeral)
