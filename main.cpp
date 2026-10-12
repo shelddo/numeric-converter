@@ -18,6 +18,11 @@ static bool checkBase(const string &num, int base);
 // handle unexpected digits (special characters)
 
 int main() {
+    vector<char> validChars = {
+        '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D',
+        'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
+        'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
+    };
     string num;
     vector<char> result;
     int base;
@@ -33,12 +38,23 @@ int main() {
 
         cout << "Enter a number: " << endl;
         cin >> num;
-        cout << "What is the base of this number? " << endl;
-        cin >> base;
 
         for (char &c: num) {
             c = static_cast<char>(std::toupper(c));
         }
+
+        bool special = false;
+        for (const char c: num) {
+            if (c < '0' || c > '9' && c < 'A' || c > 'Z') {
+                cout << "Please do not enter special characters. Use only numbers and letters of the alphabet,"
+                        << " since this converter does not support any bases beyond base 36. Try again.\n" << endl;
+                special = true;
+            }
+        }
+        if (special) {continue;}
+
+        cout << "What is the base of this number? " << endl;
+        cin >> base;
 
         bool numValid = checkBase(num, base);
         if (numValid == false) {
