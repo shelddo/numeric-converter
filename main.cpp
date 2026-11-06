@@ -6,13 +6,14 @@ using namespace std;
 
 // declaração dos métodos/funções
 string toDecimal(const string &num, int base, vector<char> &output);
-string toBin(const string &num, int base, vector<char> &output);
-string toHex(const string &num, int base, vector<char> &output);
-string toAnyNumber(const string &num, int inBase, int outBase, vector<char> &output);
-static bool checkBase(const string &num, int base);
 
-//TODO
-// handle unexpected digits (special characters)
+string toBin(const string &num, int base, vector<char> &output);
+
+string toHex(const string &num, int base, vector<char> &output);
+
+string toAnyNumber(const string &num, int inBase, int outBase, vector<char> &output);
+
+static bool checkBase(const string &num, int base);
 
 int main() {
     string num;
@@ -30,6 +31,18 @@ int main() {
 
         cout << "Digite um numero: " << endl;
         cin >> num;
+
+        // checagem de caracteres especiais
+        bool special = false;
+        for (const char c: num) {
+            if (c < '0' || c > '9' && c < 'A' || c > 'Z') {
+                cout << "Por favor, nao insira caracteres especiais. Use apenas numeros e letras do alfabeto,"
+                        << " ja que este conversor nao suporta bases alem da base 36. Tente novamente.\n" << endl;
+                special = true;
+            }
+        }
+        if (special) { continue; }
+
         cout << "Digite a base de origem: " << endl;
         cin >> base;
 
