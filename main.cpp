@@ -1,4 +1,4 @@
-// Projeto de Calculadora de bases numéricas
+// Projeto de Conversor de bases numéricas
 // Sheldon Seraphim, Breno Cavalcante, Gabriella Ceccon
 
 #include <cmath>
@@ -9,10 +9,6 @@ using namespace std;
 
 // declaração dos métodos/funções
 string toDecimal(const string &num, int base, vector<char> &output);
-
-string toBin(const string &num, int base, vector<char> &output);
-
-string toHex(const string &num, int base, vector<char> &output);
 
 string toAnyNumber(const string &num, int inBase, int outBase, vector<char> &output);
 
