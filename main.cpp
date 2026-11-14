@@ -1,3 +1,6 @@
+// Projeto de Calculadora de bases numéricas
+// Sheldon Seraphim, Breno Cavalcante, Gabriella Ceccon
+
 #include <cmath>
 #include <iostream>
 #include <string>
