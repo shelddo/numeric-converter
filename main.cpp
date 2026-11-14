@@ -5,24 +5,11 @@
 using namespace std;
 
 string toDecimal(const string &num, int base, vector<char> &output);
-
-string toBin(const string &num, int base, vector<char> &output);
-
-string toHex(const string &num, int base, vector<char> &output);
-
 string toAnyNumber(const string &num, int inBase, int outBase, vector<char> &output);
 
 static bool checkBase(const string &num, int base);
 
-//TODO
-// handle unexpected digits (special characters)
-
 int main() {
-    vector<char> validChars = {
-        '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D',
-        'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
-        'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
-    };
     string num;
     vector<char> result;
     int base;
