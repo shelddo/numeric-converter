@@ -10,19 +10,14 @@ string toBin(const string &num, int base, vector<char> &output);
 
 string toHex(const string &num, int base, vector<char> &output);
 
-string toAnyNumber(const string &num, int inBase, int outBase, vector<char> &output);
+string toAnyNumber(const string &num, int base, int outBase, vector<char> &output);
 
 static bool checkBase(const string &num, int base);
-
 //TODO
 // handle unexpected digits (special characters)
+// handle other numbers on final prompt to continue or exit
 
 int main() {
-    vector<char> validChars = {
-        '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D',
-        'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
-        'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
-    };
     string num;
     vector<char> result;
     int base;
@@ -38,23 +33,12 @@ int main() {
 
         cout << "Enter a number: " << endl;
         cin >> num;
+        cout << "What is the base of this number? " << endl;
+        cin >> base;
 
         for (char &c: num) {
             c = static_cast<char>(std::toupper(c));
         }
-
-        bool special = false;
-        for (const char c: num) {
-            if (c < '0' || c > '9' && c < 'A' || c > 'Z') {
-                cout << "Please do not enter special characters. Use only numbers and letters of the alphabet,"
-                        << " since this converter does not support any bases beyond base 36. Try again.\n" << endl;
-                special = true;
-            }
-        }
-        if (special) {continue;}
-
-        cout << "What is the base of this number? " << endl;
-        cin >> base;
 
         bool numValid = checkBase(num, base);
         if (numValid == false) {
@@ -75,19 +59,65 @@ int main() {
         // check if the input number is already on the ouput desired base
         if (baseOut == base) {
             cout << "Can't convert a base " << base
-                    << " number to the same base. Please inform another output base to convert." << endl;
+            << " number to the same base. Please inform another output base to convert." << endl;
             continue;
         }
 
-        string msg = toAnyNumber(num, base, baseOut, result);
-        if (msg == "SUCCESS") {
-            cout << "Result: " << endl;
-            for (const char i: result) {
-                cout << i;
+        switch (baseOut) {
+            case 2: {
+                string msg = toBin(num, base, result);
+                if (msg == "SUCCESS") {
+                    cout << "Result: " << endl;
+                    for (const char i: result) {
+                        cout << i;
+                    }
+                    cout << endl;
+                } else if (msg == "LARGE NUMBER") {
+                    cout << "This number is too large, not supported." << endl;
+                }
+                break;
             }
-            cout << endl;
-        } else if (msg == "LARGE NUMBER") {
-            cout << "This number is too large, not supported." << endl;
+
+            case 10: {
+                string msg = toDecimal(num, base, result);
+                if (msg == "SUCCESS") {
+                    cout << "Result: " << endl;
+                    for (const char i: result) {
+                        cout << i;
+                    }
+                } else if (msg == "LARGE NUMBER") {
+                    cout << "This number is too large, not supported." << endl;
+                }
+                break;
+            }
+
+            case 16: {
+                string msg = toHex(num, base, result);
+                if (msg == "SUCCESS") {
+                    cout << "Result: " << endl;
+                    for (const char i: result) {
+                        cout << i;
+                    }
+                    cout << endl;
+                } else if (msg == "LARGE NUMBER") {
+                    cout << "This number is too large, not supported." << endl;
+                }
+                break;
+            }
+
+            default: {
+                string msg = toAnyNumber(num, base, baseOut, result);
+                if (msg == "SUCCESS") {
+                    cout << "Result: " << endl;
+                    for (const char i: result) {
+                        cout << i;
+                    }
+                    cout << endl;
+                } else if (msg == "LARGE NUMBER") {
+                    cout << "This number is too large, not supported." << endl;
+                }
+                break;
+            }
         }
 
         bool valid = false;
@@ -125,15 +155,10 @@ bool checkBase(const string &num, const int base) {
     return valid;
 }
 
-/// \brief Converts a number from any base to decimal.
-/// \param num The number to be converted.
-/// \param base The source base of the number.
-/// \param output Output vector that will be stored the converted digits.
-/// \returns A message indicating whether the operation was succesful or an error occurred.
 string toDecimal(const string &num, const int base, vector<char> &output) {
     long long decResult = 0;
     long long pow = 1;
-    for (size_t i = num.length(); i-- > 0;) {
+    for (size_t i = num.length(); i-- > 0; ) {
         long long numb;
         if (isdigit(num[i])) {
             numb = num[i] - '0';
@@ -147,8 +172,7 @@ string toDecimal(const string &num, const int base, vector<char> &output) {
             }
         }
         decResult += value;
-        cout << "num: " << numb << " char: " << num[i] << " pow: " << pow << " base: " << base << " value: " << value <<
-                endl;
+        cout << "num: " << numb << " char: " << num[i] << " pow: " << pow << " base: " << base << " value: " << value << endl;
         pow *= base;
     }
     string outNumb = to_string(decResult);
@@ -159,16 +183,110 @@ string toDecimal(const string &num, const int base, vector<char> &output) {
     return "SUCCESS";
 }
 
-/// \brief Converts a number from any base to another base.
+
+/// \brief Converts a number from any base to binary.
 /// \param num The number to be converted.
-/// \param inBase The source base of the number.
-/// \param outBase The target base.
-/// \param output The vector where the result digits will be stored.
-/// \return A message indicating whether the operation was successful or an error occurred.
-string toAnyNumber(const string &num, const int inBase, const int outBase, vector<char> &output) {
+/// \param base The base which the number to be converted is.
+/// \param output The output list where the final result will be inserted to.
+/// \return A string message to identify if the process went well or something went wrong.
+string toBin(const string &num, const int base, vector<char> &output) {
+    long long leftover;
+    switch (base) {
+        case 2: {
+            return "BINARY";
+            break;
+        }
+
+        case 10: {
+            //cout << num << endl;
+            long long numb = stoll(num);
+            //cout << numb << endl;
+            do {
+                leftover = numb % 2;
+                numb /= 2;
+                output.insert(output.begin(), static_cast<char>('0' + leftover));
+                //cout << leftover << endl;
+            } while (numb > 0);
+            return "SUCCESS";
+            break;
+        }
+
+        default: {
+            vector<char> outputDec;
+            string decMsg = toDecimal(num, base, outputDec);
+            if (decMsg == "LARGE NUMBER") {
+                return "LARGE NUMBER";
+            }
+            string decNumb(outputDec.begin(), outputDec.end());
+            long long decResult = stoll(decNumb);
+            //cout << "decResult: " << decResult << endl;
+            do {
+                leftover = decResult % 2;
+                decResult /= 2;
+                output.insert(output.begin(), static_cast<char>('0' + leftover));
+                // cout << leftover << endl;
+            } while (decResult > 0);
+            return "SUCCESS";
+            break;
+        }
+    }
+}
+
+string toHex(const string &num, const int base, vector<char> &output) {
+    switch (base) {
+        case 16: {
+            return "HEXADECIMAL";
+            break;
+        }
+
+        case 10: {
+            long long leftover;
+            long long decResult = stoll(num);
+            do {
+                leftover = decResult % 16;
+                decResult /= 16;
+                //cout << "number: " << leftover << endl;
+                if (leftover >= 10) {
+                    char chr = static_cast<char>(leftover + 55);
+                    cout << "letra: " << chr << endl;
+                    output.insert(output.begin(), chr);
+                } else {
+                    output.insert(output.begin(),  static_cast<char>(leftover + '0'));
+                }
+            } while (decResult > 0);
+            return "SUCCESS";
+        }
+
+        default: {
+            long long leftover;
+            vector<char> outputDec;
+            string decMsg = toDecimal(num, base, outputDec);
+            if (decMsg == "LARGE NUMBER") {
+                return "LARGE NUMBER";
+            }
+            const string decNumb(outputDec.begin(), outputDec.end());
+            long long decResult = stoll(decNumb);
+            do {
+                leftover = decResult % 16;
+                decResult /= 16;
+                //cout << "number: " << leftover << endl;
+                if (leftover >= 10) {
+                    char chr = static_cast<char>(leftover + 55);
+                    //cout << "letter: " << chr << endl;
+                    output.insert(output.begin(), chr);
+                } else {
+                    output.insert(output.begin(),  static_cast<char>(leftover + '0'));
+                }
+            } while (decResult > 0);
+            return "SUCCESS";
+        }
+    }
+}
+
+string toAnyNumber(const string &num, const int base, const int outBase, vector<char> &output) {
     long long leftover;
     vector<char> outputDec;
-    string decMsg = toDecimal(num, inBase, outputDec);
+    string decMsg = toDecimal(num, base, outputDec);
     if (decMsg == "LARGE NUMBER") {
         return "LARGE NUMBER";
     }
